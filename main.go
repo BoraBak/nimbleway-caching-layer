@@ -110,19 +110,17 @@ func (c *ARC) isCacheReachedMaxSize() bool {
 
 // evict evicts items from LRU until the size constraint is satisfied
 func (c *ARC) evict() {
-	if c.isCacheReachedMaxSize() {
-		totalSize := c.lruSize + c.mruSize
-		for c.lru.Len() > 0 && totalSize >= c.maxSize {
-			evicted := c.lru.Back()
-			if evicted == nil {
-				break
-			}
-			evictedItem := evicted.Value.(*CacheItem)
-			delete(c.cache, evictedItem.key)
-			c.lru.Remove(evicted)
-			c.lruSize--
-			totalSize--
+	totalSize := c.lruSize + c.mruSize
+	for c.lru.Len() > 0 && totalSize >= c.maxSize {
+		evicted := c.lru.Back()
+		if evicted == nil {
+			break
 		}
+		evictedItem := evicted.Value.(*CacheItem)
+		delete(c.cache, evictedItem.key)
+		c.lru.Remove(evicted)
+		c.lruSize--
+		totalSize--
 	}
 }
 
