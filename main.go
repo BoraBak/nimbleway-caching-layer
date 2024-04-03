@@ -48,12 +48,23 @@ func (c *ARC) Get(key int) []byte {
 
 	var result []byte
 	if item, isKeyExistsInCache := c.cache[key]; isKeyExistsInCache {
-		c.mru.MoveToFront(item)
-		result = item.Value.(*CacheItem).value
+		result = c.handleCacheHit(item, result)
 	} else {
-		result = c.getDataFromDB(key)
+		result = c.handleCacheMiss(key, result)
 	}
 
+	return result
+}
+
+func (c *ARC) handleCacheHit(item *list.Element, result []byte) []byte {
+	c.mru.MoveToFront(item)
+	result = item.Value.(*CacheItem).value
+	return result
+}
+
+func (c *ARC) handleCacheMiss(key int, result []byte) []byte {
+	result = c.getDataFromDB(key)
+	c.addNewItemToLRU(key, result)
 	return result
 }
 
@@ -72,6 +83,17 @@ func (c *ARC) Set(key int, value []byte) {
 	c.addNewItemToMRU(key, value)
 }
 
+func (c *ARC) addNewItemToLRU(key int, value []byte) {
+	newItem := &CacheItem{
+		key:   key,
+		value: value,
+	}
+
+	element := c.lru.PushFront(newItem)
+	c.cache[key] = element
+	c.lruSize++
+}
+
 func (c *ARC) addNewItemToMRU(key int, value []byte) {
 	newItem := &CacheItem{
 		key:   key,
@@ -87,7 +109,7 @@ func (c *ARC) isCacheReachedMaxSize() bool {
 	return c.lruSize+c.mruSize >= c.maxSize
 }
 
-// evict items from LRU until the size constraint is satisfied
+// evict evicts items from LRU until the size constraint is satisfied
 func (c *ARC) evict() {
 	if c.isCacheReachedMaxSize() {
 		totalSize := c.lruSize + c.mruSize

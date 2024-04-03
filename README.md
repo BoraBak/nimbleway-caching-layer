@@ -1,6 +1,8 @@
 # Cache Layer Implementation
 The implemented cache layer provides efficient caching of data blocks with adaptability to varying access patterns. By integrating with `file.db`, it ensures data consistency and reliability while improving performance by reducing read latency through caching.
 
+## Implementation Details
+
 ### Adaptive Replacement Cache (ARC) Algorithm:
 The Adaptive Replacement Cache (ARC) algorithm was selected for its adeptness in adjusting cache size allocation between two lists: Least Recently Used (LRU) and Most Recently Used (MRU). This selection was made due to its capability to efficiently manage varying access patterns, ensuring optimal cache hit rates while accommodating both short-term and long-term changes in data usage.
 
