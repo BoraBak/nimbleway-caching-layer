@@ -48,24 +48,23 @@ func (c *ARC) Get(key int) []byte {
 
 	var result []byte
 	if item, isKeyExistsInCache := c.cache[key]; isKeyExistsInCache {
-		result = c.handleCacheHit(item, result)
+		result = c.handleCacheHit(item)
 	} else {
-		result = c.handleCacheMiss(key, result)
+		result = c.handleCacheMiss(key)
 	}
 
 	return result
 }
 
-func (c *ARC) handleCacheHit(item *list.Element, result []byte) []byte {
+func (c *ARC) handleCacheHit(item *list.Element) []byte {
 	c.mru.MoveToFront(item)
-	result = item.Value.(*CacheItem).value
-	return result
+	return item.Value.(*CacheItem).value
 }
 
-func (c *ARC) handleCacheMiss(key int, result []byte) []byte {
-	result = c.getDataFromDB(key)
-	c.addNewItemToLRU(key, result)
-	return result
+func (c *ARC) handleCacheMiss(key int) []byte {
+	item := c.getDataFromDB(key)
+	c.addNewItemToLRU(key, item)
+	return item
 }
 
 func (c *ARC) Set(key int, value []byte) {
